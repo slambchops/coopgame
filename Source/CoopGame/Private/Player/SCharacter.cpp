@@ -17,8 +17,9 @@ ASCharacter::ASCharacter()
 	SpringArmComp->SetupAttachment(RootComponent);
 	SpringArmComp->bUsePawnControlRotation = true;
 
-	//Needed to enable UE4 inbuilt crouch mechanic
+	//Needed to enable UE4 inbuilt crouch and jump mechanic
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
+	GetMovementComponent()->GetNavAgentPropertiesRef().bCanJump = true;
 
 	//Now the camera
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
@@ -76,5 +77,6 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	//Handler functions for actions
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASCharacter::BeginCrouch);
 	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASCharacter::EndCrouch);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASCharacter::Jump);
 }
 
