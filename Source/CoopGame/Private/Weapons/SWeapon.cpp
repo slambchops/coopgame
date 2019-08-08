@@ -3,6 +3,7 @@
 
 #include "SWeapon.h"
 #include "DrawDebugHelpers.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ASWeapon::ASWeapon()
@@ -35,8 +36,11 @@ void ASWeapon::Fire()
 		FRotator EyeRotation;
 		MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 
+		//Get the direction the shot came from
+		FVector ShotDirection = EyeRotation.Vector();
+
 		//Determine how far we should trace the line
-		FVector TraceEnd = EyeLocation + (EyeRotation.Vector() * 10000);
+		FVector TraceEnd = EyeLocation + (ShotDirection * 10000);
 
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(MyOwner); //ignore the player who owns this
@@ -48,6 +52,10 @@ void ASWeapon::Fire()
 		if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, ECC_Visibility, QueryParams))
 		{
 			//Returns true if we hit something (Blocking hit) ... process damage
+			AActor* HitActor = Hit.GetActor(); //Get the actor that was hit by the shot
+
+			//Apply the damage to the actor
+			UGameplayStatics::ApplyPointDamage(HitActor, 20.0f, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
 		}
 
 		//Draw the line trace
