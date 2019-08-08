@@ -2,6 +2,7 @@
 
 
 #include "SWeapon.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 ASWeapon::ASWeapon()
@@ -19,6 +20,41 @@ void ASWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void ASWeapon::Fire()
+{
+	//Trace the world from pawn eyes to cross hair location (center screen)
+
+	//Find who owns weapon
+	AActor* MyOwner = GetOwner();
+	if (MyOwner)
+	{
+		//Get location of the actors "eyes"
+		FVector EyeLocation;
+		FRotator EyeRotation;
+		MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
+
+		//Determine how far we should trace the line
+		FVector TraceEnd = EyeLocation + (EyeRotation.Vector() * 10000);
+
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(MyOwner); //ignore the player who owns this
+		QueryParams.AddIgnoredActor(this); //ignore the gun itself
+		QueryParams.bTraceComplex = true; //more expensive but better
+
+		//Do the line trace and get the info where the bullet will hit
+		FHitResult Hit;
+		if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, ECC_Visibility, QueryParams))
+		{
+			//Returns true if we hit something (Blocking hit) ... process damage
+		}
+
+		//Draw the line trace
+		DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::White, false, 1.0f, 0, 1.0f);
+	}
+
+
 }
 
 // Called every frame

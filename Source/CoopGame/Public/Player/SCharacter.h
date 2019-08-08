@@ -42,4 +42,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	//Override this function to make it easier to get location where bullets should start (based on 3p cam)
+	virtual FVector GetPawnViewLocation() const override;
+
 };
