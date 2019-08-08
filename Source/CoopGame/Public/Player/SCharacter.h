@@ -25,6 +25,8 @@ protected:
 	//Movement related functions
 	void MoveForward(float Value);
 	void MoveRight(float Value);
+	void BeginCrouch();
+	void EndCrouch();
 
 	//Camera related
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")

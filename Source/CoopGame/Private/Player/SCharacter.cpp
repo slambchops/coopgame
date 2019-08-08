@@ -4,6 +4,7 @@
 #include "SCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/PawnMovementComponent.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -11,12 +12,18 @@ ASCharacter::ASCharacter()
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	//Setup the camera. The SpringArm first, which is what the camera will be connected to
+	//Setup the spring arm. The camera will be attached to it for better camera movement
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
 	SpringArmComp->SetupAttachment(RootComponent);
 	SpringArmComp->bUsePawnControlRotation = true;
+
+	//Needed to enable UE4 inbuilt crouch mechanic
+	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
+
+	//Now the camera
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComp->SetupAttachment(SpringArmComp); //Attach to spring arm
+
 }
 
 // Called when the game starts or when spawned
@@ -38,6 +45,16 @@ void ASCharacter::MoveRight(float Value)
 	AddMovementInput(GetActorRightVector() * Value);
 }
 
+void ASCharacter::BeginCrouch()
+{
+	Crouch(); //UE4 premade function
+}
+
+void ASCharacter::EndCrouch()
+{
+	UnCrouch(); //UE4 premade function
+}
+
 // Called every frame
 void ASCharacter::Tick(float DeltaTime)
 {
@@ -55,5 +72,9 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAxis("MoveRight", this, &ASCharacter::MoveRight);
 	PlayerInputComponent->BindAxis("LookUp", this, &ASCharacter::AddControllerPitchInput); //Premade function. We use for mouse
 	PlayerInputComponent->BindAxis("Turn", this, &ASCharacter::AddControllerYawInput); //Premade function. We use for mouse
+
+	//Handler functions for actions
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASCharacter::BeginCrouch);
+	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASCharacter::EndCrouch);
 }
 
