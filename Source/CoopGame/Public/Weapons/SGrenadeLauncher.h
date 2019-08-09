@@ -21,12 +21,12 @@ public:
 	// Sets default values for this actor's properties
 	ASGrenadeLauncher();
 
+	//Function that handle when the gun fires
+	virtual void Fire() override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-	//Function that handle when the gun fires
-	virtual void Fire() override;
 
 	//Muzzle effects
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")

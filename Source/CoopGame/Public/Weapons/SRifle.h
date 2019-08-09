@@ -16,12 +16,14 @@ public:
 	// Sets default values for this actor's properties
 	ASRifle();
 
+	//Function that handle when the gun fires
+	virtual void Fire() override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	//Function that handle when the gun fires
-	virtual void Fire() override;
+	void PlayFireEffects(FVector TracerEndPoint);
 
 	//Muzzle effects
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")

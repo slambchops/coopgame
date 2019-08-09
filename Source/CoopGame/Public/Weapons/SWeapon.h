@@ -19,24 +19,16 @@ public:
 	// Sets default values for this actor's properties
 	ASWeapon();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	USkeletalMeshComponent* MeshComp;
-
 	//Function that handle when the gun fires
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	virtual void Fire();
 
+protected:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USkeletalMeshComponent* MeshComp;
+
 	//The variable for the hitscan damage type
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	TSubclassOf<UDamageType> DamageType;
-
-
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 };

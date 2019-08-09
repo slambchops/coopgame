@@ -73,24 +73,30 @@ void ASRifle::Fire()
 			TracerEndPoint = Hit.ImpactPoint;
 		}
 
+		PlayFireEffects(TracerEndPoint);
+
 		//DEBUG: Draw the line trace
 		//DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::White, false, 1.0f, 0, 1.0f);
+			
+	}
+}
 
-		//Create the muzzle effect if it exists
-		if (MuzzleEffect)
-		{
-			UGameplayStatics::SpawnEmitterAttached(MuzzleEffect, MeshComp, MuzzleSocketName);
-		}
+void ASRifle::PlayFireEffects(FVector TracerEndPoint)
+{
+	//Create the muzzle effect if it exists
+	if (MuzzleEffect)
+	{
+		UGameplayStatics::SpawnEmitterAttached(MuzzleEffect, MeshComp, MuzzleSocketName);
+	}
 
-		//Create the tracer line that comes out of the muzzle all the way to impact point
-		if (TracerEffect)
+	//Create the tracer line that comes out of the muzzle all the way to impact point
+	if (TracerEffect)
+	{
+		FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
+		UParticleSystemComponent* TracerComp = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), TracerEffect, MuzzleLocation);
+		if (TracerComp)
 		{
-			FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
-			UParticleSystemComponent* TracerComp = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), TracerEffect, MuzzleLocation);
-			if (TracerComp)
-			{
-				TracerComp->SetVectorParameter(TracerTargetName, TracerEndPoint);
-			}
+			TracerComp->SetVectorParameter(TracerTargetName, TracerEndPoint);
 		}
 	}
 }
