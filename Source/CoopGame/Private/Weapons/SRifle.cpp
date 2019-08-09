@@ -28,6 +28,8 @@ void ASRifle::BeginPlay()
 
 void ASRifle::Fire()
 {
+	Super::Fire();
+
 	//Trace the world from pawn eyes to cross hair location (center screen)
 
 	//Find who owns weapon

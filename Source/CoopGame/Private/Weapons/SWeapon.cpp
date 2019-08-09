@@ -18,6 +18,19 @@ ASWeapon::ASWeapon()
 
 void ASWeapon::Fire()
 {
+	DoFireCamShake();
+}
 
+void ASWeapon::DoFireCamShake()
+{
+	APawn* MyOwner = Cast<APawn>(GetOwner());
+	if (MyOwner)
+	{
+		APlayerController* PC = Cast<APlayerController>(MyOwner->GetController());
+		if (PC && FireCamShake)
+		{
+			PC->ClientPlayCameraShake(FireCamShake);
+		}
+	}
 }
 
