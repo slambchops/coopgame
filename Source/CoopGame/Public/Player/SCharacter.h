@@ -37,6 +37,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USpringArmComponent* SpringArmComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USHealthComponent* HealthComponent;
 
 	//Aim down sight related
@@ -65,7 +66,7 @@ protected:
 
 	//This function will respond to the broadcast health change events
 	UFUNCTION()
-	void OnHealthChanged(USHealthComponent* HealthComp, float Health, float HealthDelta,
+	void OnHealthChanged(USHealthComponent* OwningHealthComp, float Health, float HealthDelta,
 						 const class UDamageType* DamageType, class AController* InstigatedBy,
 					     AActor* DamageCauser);
 
