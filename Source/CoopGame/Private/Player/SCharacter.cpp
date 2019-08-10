@@ -2,10 +2,12 @@
 
 
 #include "SCharacter.h"
+#include "CoopGame.h"
 #include "SWeapon.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
+#include "Components/CapsuleComponent.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -21,6 +23,9 @@ ASCharacter::ASCharacter()
 	//Needed to enable UE4 inbuilt crouch and jump mechanic
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanJump = true;
+
+	//Do not want the capsule to block damage -- damage need to be able to reach the mesh!
+	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Ignore);
 
 	//Now the camera
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
