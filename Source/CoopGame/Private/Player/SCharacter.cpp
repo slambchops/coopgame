@@ -4,6 +4,8 @@
 #include "SCharacter.h"
 #include "CoopGame.h"
 #include "SWeapon.h"
+#include "SHealthComponent.h"
+
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
@@ -27,6 +29,8 @@ ASCharacter::ASCharacter()
 	//Do not want the capsule to block damage -- damage need to be able to reach the mesh!
 	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Ignore);
 
+	HealthComponent = CreateDefaultSubobject<USHealthComponent>(TEXT("HealthComp"));
+
 	//Now the camera
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComp->SetupAttachment(SpringArmComp); //Attach to spring arm
@@ -36,6 +40,7 @@ ASCharacter::ASCharacter()
 
 	WeaponAttachSocketName = "WeaponSocket";
 
+	bDied = false;
 }
 
 // Called when the game starts or when spawned
@@ -55,6 +60,7 @@ void ASCharacter::BeginPlay()
 		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
 	}
 
+	HealthComponent->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHealthChanged);
 }
 
 // Called every frame
@@ -113,6 +119,23 @@ void ASCharacter::StopFire()
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->StopFire();
+	}
+}
+
+void ASCharacter::OnHealthChanged(USHealthComponent* HealthComp, float Health, float HealthDelta,
+								  const class UDamageType* DamageType, class AController* InstigatedBy,
+								  AActor* DamageCauser)
+{
+	if (Health <= 0.0f && !bDied)
+	{
+		//Die
+		bDied = true;
+
+		GetMovementComponent()->StopMovementImmediately();
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		DetachFromControllerPendingDestroy();
+
+		SetLifeSpan(10.0f);
 	}
 }
 

@@ -9,6 +9,7 @@
 class UCameraComponent;
 class USpringArmComponent;
 class ASWeapon;
+class USHealthComponent;
 
 UCLASS()
 class COOPGAME_API ASCharacter : public ACharacter
@@ -36,6 +37,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USpringArmComponent* SpringArmComp;
 
+	USHealthComponent* HealthComponent;
+
 	//Aim down sight related
 	bool bWantsToZoom;
 	float DefaultFOV;
@@ -59,6 +62,16 @@ protected:
 
 	void StartFire();
 	void StopFire();
+
+	//This function will respond to the broadcast health change events
+	UFUNCTION()
+	void OnHealthChanged(USHealthComponent* HealthComp, float Health, float HealthDelta,
+						 const class UDamageType* DamageType, class AController* InstigatedBy,
+					     AActor* DamageCauser);
+
+	//Pawn has died previously
+	UPROPERTY(BlueprintReadOnly, Category = "Player")
+	bool bDied;
 
 public:
 	// Called every frame
