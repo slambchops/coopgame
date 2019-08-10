@@ -7,6 +7,7 @@
 #include "Particles/ParticleSystem.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "TimerManager.h"
 
 // Sets default values
 ASWeapon::ASWeapon()
@@ -14,6 +15,27 @@ ASWeapon::ASWeapon()
 	MeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MeshComp"));
 	RootComponent = MeshComp;
 
+	RateOfFire = 600;
+}
+
+void ASWeapon::StartFire()
+{
+	float FirstDelay = FMath::Max(LastFiredTime + TimeBetweenShots - GetWorld()->TimeSeconds, 0.0f); //Choose value that can be no less than 0
+	GetWorldTimerManager().SetTimer(TimerHandle_TimeBetweenShots, this, &ASWeapon::Fire, TimeBetweenShots, true, FirstDelay);
+	LastFiredTime = GetWorld()->TimeSeconds;
+}
+
+void ASWeapon::StopFire()
+{
+	GetWorldTimerManager().ClearTimer(TimerHandle_TimeBetweenShots);
+}
+
+
+void ASWeapon::BeginPlay()
+{
+	Super::BeginPlay();
+
+	TimeBetweenShots = 60 / RateOfFire;
 }
 
 void ASWeapon::Fire()

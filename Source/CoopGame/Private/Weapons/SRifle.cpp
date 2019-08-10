@@ -19,6 +19,8 @@ ASRifle::ASRifle()
 	MuzzleSocketName = "MuzzleSocket";
 	TracerTargetName = "Target";
 
+	BaseDamage = 20;
+
 }
 
 // Called when the game starts or when spawned
@@ -65,11 +67,20 @@ void ASRifle::Fire()
 			//Returns true if we hit something (Blocking hit) ... process damage
 			AActor* HitActor = Hit.GetActor(); //Get the actor that was hit by the shot
 
-			//Apply the damage to the actor
-			UGameplayStatics::ApplyPointDamage(HitActor, 20.0f, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
-
-			//Get the surface type and then determine which impact effect to create
+			//Get the surface type that the bullet hit
 			EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+
+			//Headshot damage check
+			float ActualDamage = BaseDamage;
+			if (SurfaceType == SURFACE_FLESH_VULNERABLE)
+			{
+				ActualDamage *= 4.0f;
+			}
+
+			//Apply the damage to the actor
+			UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
+
+			//Determine which impact effect should be used based on material we hit
 			UParticleSystem* SelectedEffect = nullptr;
 			switch (SurfaceType)
 			{

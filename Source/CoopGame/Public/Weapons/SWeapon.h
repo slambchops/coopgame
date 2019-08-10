@@ -19,11 +19,14 @@ public:
 	// Sets default values for this actor's properties
 	ASWeapon();
 
-	//Function that handle when the gun fires
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	virtual void Fire();
+	virtual void StartFire();
+	virtual void StopFire();
 
 protected:
+
+	virtual void BeginPlay() override;
+
+	virtual void Fire();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USkeletalMeshComponent* MeshComp;
@@ -36,4 +39,15 @@ protected:
 	TSubclassOf<UCameraShake> FireCamShake;
 
 	void DoFireCamShake();
+
+	FTimerHandle TimerHandle_TimeBetweenShots;
+
+	float LastFiredTime;
+
+	//RPM - bullets per minute fired
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	float RateOfFire;
+
+	//Derived from rate of fire
+	float TimeBetweenShots;
 };
