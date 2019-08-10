@@ -2,11 +2,13 @@
 
 
 #include "SRifle.h"
+#include "CoopGame.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 
 // Sets default values
 ASRifle::ASRifle()
@@ -51,13 +53,14 @@ void ASRifle::Fire()
 		QueryParams.AddIgnoredActor(MyOwner); //ignore the player who owns this
 		QueryParams.AddIgnoredActor(this); //ignore the gun itself
 		QueryParams.bTraceComplex = true; //more expensive but better
+		QueryParams.bReturnPhysicalMaterial = true;
 
 		//Particle "Target" parameter
 		FVector TracerEndPoint = TraceEnd;
 
 		//Do the line trace and get the info where the bullet will hit
 		FHitResult Hit;
-		if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, ECC_Visibility, QueryParams))
+		if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, COLLISION_WEAPON, QueryParams))
 		{
 			//Returns true if we hit something (Blocking hit) ... process damage
 			AActor* HitActor = Hit.GetActor(); //Get the actor that was hit by the shot
@@ -65,10 +68,24 @@ void ASRifle::Fire()
 			//Apply the damage to the actor
 			UGameplayStatics::ApplyPointDamage(HitActor, 20.0f, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
 
-			//Bullet hit effect
-			if (ImpactEffect)
+			//Get the surface type and then determine which impact effect to create
+			EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+			UParticleSystem* SelectedEffect = nullptr;
+			switch (SurfaceType)
 			{
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactEffect, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
+			case SURFACE_FLESH_DEFAULT:
+			case SURFACE_FLESH_VULNERABLE:
+				SelectedEffect = FleshImpactEffect;
+				break;
+			default:
+				SelectedEffect = DefaultImpactEffect;
+				break;
+			}
+
+			//Bullet hit effect
+			if (SelectedEffect)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedEffect, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
 			}
 
 			//Let tracer know where the bullet hit
