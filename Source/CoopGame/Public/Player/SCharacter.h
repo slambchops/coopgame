@@ -75,8 +75,6 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Player")
 	bool bDied;
 
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
-
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

@@ -9,6 +9,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 ASRifle::ASRifle()
@@ -103,6 +104,11 @@ void ASRifle::FireImpl()
 
 		PlayFireEffects(TracerEndPoint);
 
+		if (Role == ROLE_Authority)
+		{
+			HitScanTrace.TraceTo = TracerEndPoint;
+		}
+
 		//DEBUG: Draw the line trace
 		//DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::White, false, 1.0f, 0, 1.0f);
 			
@@ -128,3 +134,18 @@ void ASRifle::PlayFireEffects(FVector TracerEndPoint)
 		}
 	}
 }
+
+void ASRifle::OnRep_HitScanTrace()
+{
+	// Play cosmetic FX on the clients when replication occurs
+	PlayFireEffects(HitScanTrace.TraceTo);
+}
+
+void ASRifle::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	//Replicated to any relevant client that's connected
+	DOREPLIFETIME_CONDITION(ASRifle, HitScanTrace, COND_SkipOwner); //Owner doesn't need this replicated to it
+}
+

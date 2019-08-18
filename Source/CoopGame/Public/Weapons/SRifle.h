@@ -7,6 +7,21 @@
 #include "SWeapon.h"
 #include "SRifle.generated.h"
 
+//TODO: this class should be renamed to HITSCAN BASE or something
+
+//Contains info of single hitscan weapon linetrace
+USTRUCT()
+struct FHitScanTrace
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY()
+		FVector_NetQuantize TraceFrom;
+
+	UPROPERTY()
+		FVector_NetQuantize TraceTo;
+};
+
 UCLASS()
 class COOPGAME_API ASRifle : public ASWeapon
 {
@@ -47,4 +62,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	float BaseDamage;
 
+	UPROPERTY(ReplicatedUsing = OnRep_HitScanTrace)
+	FHitScanTrace HitScanTrace;
+
+	UFUNCTION()
+	void OnRep_HitScanTrace();
 };
