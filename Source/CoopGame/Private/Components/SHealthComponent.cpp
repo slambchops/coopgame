@@ -2,11 +2,14 @@
 
 
 #include "SHealthComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
 USHealthComponent::USHealthComponent()
 {
 	DefaultHealth = 100;
+
+	SetIsReplicated(true);
 }
 
 
@@ -15,11 +18,15 @@ void USHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//Subscribe this component to it's owners OnTakeAnyDamage callback
-	AActor * MyOwner = GetOwner();
-	if (MyOwner)
+	//Only hook if we are on server. Clients don't need to process health
+	if (GetOwnerRole() == ROLE_Authority)
 	{
-		MyOwner->OnTakeAnyDamage.AddDynamic(this, &USHealthComponent::HandleTakeAnyDamage);
+		//Subscribe this component to it's owners OnTakeAnyDamage callback
+		AActor * MyOwner = GetOwner();
+		if (MyOwner)
+		{
+			MyOwner->OnTakeAnyDamage.AddDynamic(this, &USHealthComponent::HandleTakeAnyDamage);
+		}
 	}
 	
 	Health = DefaultHealth;
@@ -38,4 +45,12 @@ void USHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage, 
 	UE_LOG(LogTemp, Log, TEXT("Health Changed: %s"), *FString::SanitizeFloat(Health));
 
 	OnHealthChanged.Broadcast(this, Health, Damage, DamageType, InstigatedBy, DamageCauser);
+}
+
+void USHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	//Replicated to any relevant client that's connected
+	DOREPLIFETIME(USHealthComponent, Health);
 }
