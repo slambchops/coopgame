@@ -22,11 +22,18 @@ public:
 	virtual void StartFire();
 	virtual void StopFire();
 
+private:
+	virtual void Fire();
+
 protected:
 
 	virtual void BeginPlay() override;
 
-	virtual void Fire();
+	//Weapon implementations need to override this
+	virtual void FireImpl();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerFire();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USkeletalMeshComponent* MeshComp;

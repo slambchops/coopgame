@@ -17,7 +17,7 @@ public:
 	ASRifle();
 
 	//Function that handle when the gun fires
-	virtual void Fire() override;
+	virtual void FireImpl() override;
 
 protected:
 	// Called when the game starts or when spawned

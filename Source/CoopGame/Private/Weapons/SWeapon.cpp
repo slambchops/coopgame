@@ -16,6 +16,8 @@ ASWeapon::ASWeapon()
 	RootComponent = MeshComp;
 
 	RateOfFire = 600;
+
+	SetReplicates(true); //Make sure weapons will always spawn on clients
 }
 
 void ASWeapon::StartFire()
@@ -38,9 +40,35 @@ void ASWeapon::BeginPlay()
 	TimeBetweenShots = 60 / RateOfFire;
 }
 
+
+void ASWeapon::FireImpl()
+{
+	//OVERRIDE ME!!!
+}
+
 void ASWeapon::Fire()
 {
+	if (Role < ROLE_Authority)
+	{
+		ServerFire();
+		FireImpl();
+	}
+
+	FireImpl();
 	DoFireCamShake();
+}
+
+
+void ASWeapon::ServerFire_Implementation()
+{
+	Fire();
+}
+
+
+//Validate (mainly for anitcheat)
+bool ASWeapon::ServerFire_Validate()
+{
+	return true;
 }
 
 void ASWeapon::DoFireCamShake()

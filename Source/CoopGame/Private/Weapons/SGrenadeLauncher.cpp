@@ -28,10 +28,8 @@ void ASGrenadeLauncher::BeginPlay()
 	
 }
 
-void ASGrenadeLauncher::Fire()
+void ASGrenadeLauncher::FireImpl()
 {
-	Super::Fire();
-
 	AActor* MyOwner = GetOwner();
 	if (MyOwner && ProjectileClass)
 	{
