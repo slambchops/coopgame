@@ -18,6 +18,11 @@ ASWeapon::ASWeapon()
 	RateOfFire = 600;
 
 	SetReplicates(true); //Make sure weapons will always spawn on clients
+
+	//Make sure Unreal Net code will update weapons even if they changes aren't occurring
+	//Example: if player is shooting the same spot, then unreal will "filter" out events
+	NetUpdateFrequency = 66.0f;
+	MinNetUpdateFrequency = 33.0f;
 }
 
 void ASWeapon::StartFire()

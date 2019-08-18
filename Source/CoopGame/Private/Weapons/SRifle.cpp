@@ -59,6 +59,8 @@ void ASRifle::FireImpl()
 		//Particle "Target" parameter
 		FVector TracerEndPoint = TraceEnd;
 
+		EPhysicalSurface SurfaceType = SurfaceType_Default;
+
 		//Do the line trace and get the info where the bullet will hit
 		FHitResult Hit;
 		if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, COLLISION_WEAPON, QueryParams))
@@ -67,7 +69,7 @@ void ASRifle::FireImpl()
 			AActor* HitActor = Hit.GetActor(); //Get the actor that was hit by the shot
 
 			//Get the surface type that the bullet hit
-			EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+			SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
 
 			//Headshot damage check
 			float ActualDamage = BaseDamage;
@@ -79,24 +81,7 @@ void ASRifle::FireImpl()
 			//Apply the damage to the actor
 			UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
 
-			//Determine which impact effect should be used based on material we hit
-			UParticleSystem* SelectedEffect = nullptr;
-			switch (SurfaceType)
-			{
-			case SURFACE_FLESH_DEFAULT:
-			case SURFACE_FLESH_VULNERABLE:
-				SelectedEffect = FleshImpactEffect;
-				break;
-			default:
-				SelectedEffect = DefaultImpactEffect;
-				break;
-			}
-
-			//Bullet hit effect
-			if (SelectedEffect)
-			{
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedEffect, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
-			}
+			PlayImpactEffects(SurfaceType, Hit.ImpactPoint);
 
 			//Let tracer know where the bullet hit
 			TracerEndPoint = Hit.ImpactPoint;
@@ -107,6 +92,7 @@ void ASRifle::FireImpl()
 		if (Role == ROLE_Authority)
 		{
 			HitScanTrace.TraceTo = TracerEndPoint;
+			HitScanTrace.SurfaceType = SurfaceType;
 		}
 
 		//DEBUG: Draw the line trace
@@ -135,10 +121,36 @@ void ASRifle::PlayFireEffects(FVector TracerEndPoint)
 	}
 }
 
+void ASRifle::PlayImpactEffects(EPhysicalSurface SurfaceType, FVector ImpactPoint)
+{
+	//Determine which impact effect should be used based on material we hit
+	UParticleSystem* SelectedEffect = nullptr;
+	switch (SurfaceType)
+	{
+	case SURFACE_FLESH_DEFAULT:
+	case SURFACE_FLESH_VULNERABLE:
+		SelectedEffect = FleshImpactEffect;
+		break;
+	default:
+		SelectedEffect = DefaultImpactEffect;
+		break;
+	}
+
+	//Bullet hit effect
+	if (SelectedEffect)
+	{
+		FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
+		FVector ShotDirection = ImpactPoint - MuzzleLocation;
+		ShotDirection.Normalize();
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedEffect, ImpactPoint, ShotDirection.Rotation());
+	}
+}
+
 void ASRifle::OnRep_HitScanTrace()
 {
 	// Play cosmetic FX on the clients when replication occurs
 	PlayFireEffects(HitScanTrace.TraceTo);
+	PlayImpactEffects(HitScanTrace.SurfaceType, HitScanTrace.TraceTo);
 }
 
 void ASRifle::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
