@@ -5,6 +5,7 @@
 #include "SHealthComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PhysicsEngine/RadialForceComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AExplosiveObject::AExplosiveObject()
@@ -26,6 +27,9 @@ AExplosiveObject::AExplosiveObject()
 	RadialForceComp->bIgnoreOwningActor = true;
 
 	ExplosionImpulse = 400;
+
+	SetReplicates(true);
+	SetReplicateMovement(true);
 }
 
 // Called when the game starts or when spawned
@@ -46,6 +50,7 @@ void AExplosiveObject::OnHealthChanged(USHealthComponent* OwningHealthComp, floa
 	if (Health <= 0.0f)
 	{
 		bExploded = true;
+		OnRep_Exploded();
 
 		//Boost the barrel upwards
 		FVector BoostIntensity = FVector::UpVector * ExplosionImpulse;
@@ -53,17 +58,22 @@ void AExplosiveObject::OnHealthChanged(USHealthComponent* OwningHealthComp, floa
 
 		//Play FX and change material (if appropriate)
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionEffect, GetActorLocation());
-		if (ExplodedMaterial)
-		{
-			MeshComp->SetMaterial(0, ExplodedMaterial);
-		}
-		else
-		{
-			Destroy();
-		}
+		Destroy();
 
-		RadialForceComp->FireImpulse();
+		//RadialForceComp->FireImpulse();
 	}
+}
+
+void AExplosiveObject::OnRep_Exploded()
+{
+	//For now, only do visual effects
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionEffect, GetActorLocation());
+
+	RadialForceComp->FireImpulse();
+
+	//Play FX and change material (if appropriate)
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionEffect, GetActorLocation());
+	Destroy();
 }
 
 // Called every frame
@@ -73,3 +83,10 @@ void AExplosiveObject::Tick(float DeltaTime)
 
 }
 
+void AExplosiveObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	//Replicated to any relevant client that's connected
+	DOREPLIFETIME(AExplosiveObject, bExploded);
+}
